@@ -1,0 +1,21 @@
+# dependencies
+node_modules
+
+# Next.js
+.next
+
+# build
+out
+
+# env
+.env*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.vercel
