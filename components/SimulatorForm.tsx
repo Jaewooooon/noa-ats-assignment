@@ -24,6 +24,19 @@ const interestTypeLabels: Record<InterestType, string> = {
   monthlyCompound: "월복리",
 };
 
+function sanitizeNumber(
+  raw: number,
+  min: number | undefined,
+  max: number | undefined,
+  fallback: number
+): number {
+  if (!Number.isFinite(raw) || Number.isNaN(raw)) return fallback;
+  let v = raw;
+  if (min !== undefined && v < min) v = min;
+  if (max !== undefined && v > max) v = max;
+  return v;
+}
+
 function NumberInput({
   label,
   value,
@@ -41,6 +54,13 @@ function NumberInput({
   min?: number;
   max?: number;
 }) {
+  const fallback = min ?? 0;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Number(e.target.value);
+    const sanitized = sanitizeNumber(raw, min, max, fallback);
+    onChange(sanitized);
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -48,7 +68,7 @@ function NumberInput({
         <input
           type="number"
           value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={handleChange}
           step={step}
           min={min}
           max={max}
