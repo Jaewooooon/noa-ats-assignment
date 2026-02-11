@@ -6,7 +6,6 @@ import { simulatePrepayment } from "@/lib/loanCalculator";
 import { calculateSavings } from "@/lib/savingsCalculator";
 import SimulatorForm from "@/components/SimulatorForm";
 import ResultDashboard from "@/components/ResultDashboard";
-import ComparisonChart from "@/components/ComparisonChart";
 import RecommendationBanner from "@/components/RecommendationBanner";
 import AmortizationTable from "@/components/AmortizationTable";
 
@@ -74,9 +73,6 @@ export default function Home() {
 
         {/* 결과 대시보드 */}
         <ResultDashboard result={result} />
-
-        {/* 차트 */}
-        <ComparisonChart result={result} input={input} />
 
         {/* 상환 스케줄 */}
         <AmortizationTable prepayment={result.prepayment} />
