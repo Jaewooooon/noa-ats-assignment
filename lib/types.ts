@@ -4,6 +4,9 @@ export type RepaymentMethod = "equalPrincipalAndInterest" | "equalPrincipal" | "
 /** 이자 과세 유형 */
 export type TaxType = "normal" | "taxFree" | "taxReduced";
 
+/** 이자 계산 방식 */
+export type InterestType = "simple" | "monthlyCompound";
+
 /** 시뮬레이터 입력 값 */
 export interface SimulatorInput {
   // 대출 정보
@@ -21,6 +24,7 @@ export interface SimulatorInput {
   // 정기예금 비교
   savingsRate: number;       // 정기예금 연 금리 (%)
   taxType: TaxType;          // 이자 과세 유형
+  interestType: InterestType; // 이자 계산 방식 (단리/월복리)
 }
 
 /** 월별 상환 스케줄 행 */

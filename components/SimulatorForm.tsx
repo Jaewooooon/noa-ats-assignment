@@ -1,6 +1,6 @@
 "use client";
 
-import { SimulatorInput, RepaymentMethod, TaxType } from "@/lib/types";
+import { SimulatorInput, RepaymentMethod, TaxType, InterestType } from "@/lib/types";
 
 interface SimulatorFormProps {
   input: SimulatorInput;
@@ -17,6 +17,11 @@ const taxTypeLabels: Record<TaxType, string> = {
   normal: "일반과세 (15.4%)",
   taxFree: "비과세",
   taxReduced: "세금우대 (9.5%)",
+};
+
+const interestTypeLabels: Record<InterestType, string> = {
+  simple: "단리",
+  monthlyCompound: "월복리",
 };
 
 function NumberInput({
@@ -150,6 +155,20 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             min={0}
             max={15}
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">이자 계산 방식</label>
+            <select
+              value={input.interestType}
+              onChange={(e) => update("interestType", e.target.value as InterestType)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            >
+              {(Object.entries(interestTypeLabels) as [InterestType, string][]).map(
+                ([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                )
+              )}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">이자 과세</label>
             <select

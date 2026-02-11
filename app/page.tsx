@@ -18,6 +18,7 @@ const defaultInput: SimulatorInput = {
   extraFunds: 10_000_000,
   savingsRate: 3.5,
   taxType: "normal",
+  interestType: "monthlyCompound",
 };
 
 export default function Home() {
@@ -37,7 +38,8 @@ export default function Home() {
       input.extraFunds,
       input.savingsRate,
       input.remainingMonths,
-      input.taxType
+      input.taxType,
+      input.interestType
     );
 
     const difference = prepayment.netBenefit - savings.netInterest;
