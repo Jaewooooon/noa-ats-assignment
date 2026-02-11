@@ -40,10 +40,10 @@ export interface LoanResult {
   totalPayment: number;      // 총 납부액 (원금 + 이자)
 }
 
-/** 조기상환 분석 결과 */
+/** 중도상환 분석 결과 */
 export interface PrepaymentResult {
   originalLoan: LoanResult;       // 기존 대출
-  prepaidLoan: LoanResult;        // 조기상환 후 대출
+  prepaidLoan: LoanResult;        // 중도상환 후 대출
   prepaymentFee: number;          // 중도상환 수수료
   interestSaved: number;          // 이자 절감액
   netBenefit: number;             // 순이익 (이자절감 - 수수료)
@@ -62,6 +62,6 @@ export interface SavingsResult {
 export interface ComparisonResult {
   prepayment: PrepaymentResult;
   savings: SavingsResult;
-  difference: number;             // 조기상환 순이익 - 정기예금 순이익 (양수면 조기상환 유리)
+  difference: number;             // 중도상환 순이익 - 정기예금 순이익 (양수면 중도상환 유리)
   recommendation: "prepayment" | "savings";
 }

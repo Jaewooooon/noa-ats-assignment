@@ -22,7 +22,7 @@ export default function AmortizationTable({ prepayment }: AmortizationTableProps
                   기존 상환
                 </th>
                 <th colSpan={3} className="py-2 px-2 text-center text-green-600 font-medium border-l border-gray-200">
-                  조기상환 후
+                  중도상환 후
                 </th>
                 <th rowSpan={2} className="py-2 px-2 text-center text-gray-500 font-medium border-l border-gray-200">
                   월 절감액

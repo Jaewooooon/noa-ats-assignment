@@ -57,10 +57,10 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold text-gray-900">
-            대출 조기상환 vs 정기예금 시뮬레이터
+            대출 중도상환 vs 정기예금 시뮬레이터
           </h1>
           <p className="mt-2 text-gray-600">
-            여유 자금을 대출 조기상환에 쓸지, 정기예금에 넣을지 비교해 보세요.
+            여유 자금을 대출 중도상환에 쓸지, 정기예금에 넣을지 비교해 보세요.
           </p>
         </div>
       </header>
