@@ -5,39 +5,75 @@ import {
 } from "./savingsCalculator";
 
 describe("calculateSavings", () => {
-  it("일반과세(15.4%)로 정기예금 수익을 계산한다", () => {
-    const result = calculateSavings(10_000_000, 3.5, 12, "normal");
+  describe("단리(simple)", () => {
+    it("일반과세(15.4%)로 정기예금 수익을 계산한다", () => {
+      const result = calculateSavings(10_000_000, 3.5, 12, "normal", "simple");
 
-    const years = 12 / 12;
-    const grossInterest = 10_000_000 * (3.5 / 100) * years;
-    expect(result.grossInterest).toBeCloseTo(350_000, 0);
-    expect(result.tax).toBeCloseTo(350_000 * 0.154, 0);
-    expect(result.netInterest).toBe(result.grossInterest - result.tax);
-    expect(result.totalAmount).toBe(10_000_000 + result.netInterest);
+      const grossInterest = 10_000_000 * (3.5 / 100) * 1; // 350,000
+      expect(result.grossInterest).toBeCloseTo(grossInterest, 0);
+      expect(result.tax).toBeCloseTo(grossInterest * 0.154, 0);
+      expect(result.netInterest).toBe(result.grossInterest - result.tax);
+      expect(result.totalAmount).toBe(10_000_000 + result.netInterest);
+    });
+
+    it("비과세일 때 세금이 0이다", () => {
+      const result = calculateSavings(10_000_000, 3.5, 12, "taxFree", "simple");
+
+      expect(result.tax).toBe(0);
+      expect(result.netInterest).toBe(result.grossInterest);
+    });
+
+    it("세금우대(9.5%)로 정확히 계산한다", () => {
+      const result = calculateSavings(10_000_000, 4, 24, "taxReduced", "simple");
+
+      const grossInterest = 10_000_000 * 0.04 * 2; // 800,000
+      expect(result.grossInterest).toBe(grossInterest);
+      expect(result.tax).toBeCloseTo(grossInterest * 0.095, 0);
+    });
+
+    it("기간이 36개월일 때 3년 기준으로 계산한다", () => {
+      const result = calculateSavings(10_000_000, 4, 36, "taxFree", "simple");
+
+      const expectedGross = 10_000_000 * 0.04 * 3; // 1,200,000
+      expect(result.grossInterest).toBe(expectedGross);
+    });
   });
 
-  it("비과세일 때 세금이 0이다", () => {
-    const result = calculateSavings(10_000_000, 3.5, 12, "taxFree");
+  describe("월복리(monthlyCompound)", () => {
+    it("만기금액 = 원금 × (1 + 연이율/12)^개월수 공식으로 계산한다", () => {
+      const result = calculateSavings(10_000_000, 4, 12, "taxFree", "monthlyCompound");
 
-    expect(result.tax).toBe(0);
-    expect(result.netInterest).toBe(result.grossInterest);
-  });
+      const monthlyRate = 0.04 / 12;
+      const maturityAmount = 10_000_000 * Math.pow(1 + monthlyRate, 12);
+      const expectedGross = maturityAmount - 10_000_000;
+      expect(result.grossInterest).toBeCloseTo(expectedGross, 0);
+      expect(result.totalAmount).toBeCloseTo(maturityAmount, 0);
+    });
 
-  it("세금우대(9.5%)로 정확히 계산한다", () => {
-    const result = calculateSavings(10_000_000, 4, 24, "taxReduced");
+    it("월복리 이자가 단리 이자보다 크다", () => {
+      const simple = calculateSavings(10_000_000, 3.5, 12, "taxFree", "simple");
+      const compound = calculateSavings(10_000_000, 3.5, 12, "taxFree", "monthlyCompound");
 
-    const years = 2;
-    const grossInterest = 10_000_000 * 0.04 * years;
-    expect(result.grossInterest).toBe(800_000);
-    expect(result.tax).toBeCloseTo(800_000 * 0.095, 0);
-  });
+      expect(compound.grossInterest).toBeGreaterThan(simple.grossInterest);
+    });
 
-  it("기간이 36개월일 때 3년 기준으로 계산한다", () => {
-    const result = calculateSavings(10_000_000, 4, 36, "taxFree");
+    it("기간이 길수록 단리 대비 월복리 이자 차이가 커진다", () => {
+      const simple12 = calculateSavings(10_000_000, 4, 12, "taxFree", "simple");
+      const compound12 = calculateSavings(10_000_000, 4, 12, "taxFree", "monthlyCompound");
+      const simple36 = calculateSavings(10_000_000, 4, 36, "taxFree", "simple");
+      const compound36 = calculateSavings(10_000_000, 4, 36, "taxFree", "monthlyCompound");
 
-    const expectedGross = 10_000_000 * 0.04 * 3;
-    expect(result.grossInterest).toBe(expectedGross);
-    expect(result.grossInterest).toBe(1_200_000);
+      const diff12 = compound12.grossInterest - simple12.grossInterest;
+      const diff36 = compound36.grossInterest - simple36.grossInterest;
+      expect(diff36).toBeGreaterThan(diff12);
+    });
+
+    it("기본값이 월복리이다", () => {
+      const explicit = calculateSavings(10_000_000, 3.5, 12, "taxFree", "monthlyCompound");
+      const defaults = calculateSavings(10_000_000, 3.5, 12, "taxFree");
+
+      expect(defaults.grossInterest).toBeCloseTo(explicit.grossInterest, 0);
+    });
   });
 });
 
@@ -50,9 +86,17 @@ describe("calculateMonthlySavingsAccumulation", () => {
     expect(result[11].month).toBe(12);
   });
 
-  it("마지막 달 누적 수익이 calculateSavings의 netInterest와 일치한다", () => {
+  it("마지막 달 누적 수익이 calculateSavings의 netInterest와 일치한다 (월복리)", () => {
     const savings = calculateSavings(10_000_000, 3.5, 12, "normal");
     const monthly = calculateMonthlySavingsAccumulation(10_000_000, 3.5, 12, "normal");
+
+    const lastMonth = monthly[monthly.length - 1];
+    expect(lastMonth.cumulativeNetInterest).toBeCloseTo(savings.netInterest, 0);
+  });
+
+  it("마지막 달 누적 수익이 calculateSavings의 netInterest와 일치한다 (단리)", () => {
+    const savings = calculateSavings(10_000_000, 3.5, 12, "normal", "simple");
+    const monthly = calculateMonthlySavingsAccumulation(10_000_000, 3.5, 12, "normal", "simple");
 
     const lastMonth = monthly[monthly.length - 1];
     expect(lastMonth.cumulativeNetInterest).toBeCloseTo(savings.netInterest, 0);
@@ -66,5 +110,13 @@ describe("calculateMonthlySavingsAccumulation", () => {
         result[i - 1].cumulativeNetInterest
       );
     }
+  });
+
+  it("월복리일 때 월별 누적 수익이 증가한다", () => {
+    const compound = calculateMonthlySavingsAccumulation(10_000_000, 4, 12, "taxFree", "monthlyCompound");
+    const simple = calculateMonthlySavingsAccumulation(10_000_000, 4, 12, "taxFree", "simple");
+
+    // 마지막 달 기준 월복리 누적 > 단리 누적
+    expect(compound[11].cumulativeNetInterest).toBeGreaterThan(simple[11].cumulativeNetInterest);
   });
 });
