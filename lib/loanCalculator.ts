@@ -1,4 +1,10 @@
+import Decimal from "decimal.js";
 import { AmortizationRow, LoanResult, PrepaymentResult, RepaymentMethod } from "./types";
+
+/** 금액(원)을 Decimal에서 반올림하여 number로 변환 */
+function toYen(d: Decimal): number {
+  return d.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
+}
 
 /**
  * 원리금균등상환 스케줄 계산
@@ -9,45 +15,56 @@ function calculateEqualPrincipalAndInterest(
   annualRate: number,
   months: number
 ): AmortizationRow[] {
-  const monthlyRate = annualRate / 100 / 12;
+  const P = new Decimal(principal);
+  const monthlyRate = new Decimal(annualRate).div(100).div(12);
   const schedule: AmortizationRow[] = [];
-  let remaining = principal;
-  let cumulativeInterest = 0;
+  let remaining = P;
+  let cumulativeInterest = new Decimal(0);
 
-  if (monthlyRate === 0) {
-    const monthlyPrincipal = principal / months;
+  if (monthlyRate.isZero()) {
+    const monthlyPrincipal = P.div(months);
     for (let m = 1; m <= months; m++) {
       const principalPayment = m === months ? remaining : monthlyPrincipal;
-      remaining -= principalPayment;
+      remaining = remaining.minus(principalPayment);
       schedule.push({
         month: m,
-        principalPayment,
+        principalPayment: toYen(principalPayment),
         interestPayment: 0,
-        totalPayment: principalPayment,
-        remainingBalance: Math.max(0, remaining),
+        totalPayment: toYen(principalPayment),
+        remainingBalance: Math.max(0, toYen(remaining)),
         cumulativeInterest: 0,
       });
     }
     return schedule;
   }
 
-  const monthlyPayment =
-    principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) /
-    (Math.pow(1 + monthlyRate, months) - 1);
+  const onePlusR = new Decimal(1).plus(monthlyRate);
+  const powN = onePlusR.pow(months);
+  const monthlyPayment = P.times(monthlyRate.times(powN)).div(powN.minus(1));
+  let principalPaidSoFar = 0;
 
   for (let m = 1; m <= months; m++) {
-    const interestPayment = remaining * monthlyRate;
-    const principalPayment = monthlyPayment - interestPayment;
-    remaining -= principalPayment;
-    cumulativeInterest += interestPayment;
+    const isLast = m === months;
+    const interestPayment = remaining.times(monthlyRate);
+    let principalPayment: Decimal;
+    if (isLast) {
+      principalPayment = new Decimal(principal).minus(principalPaidSoFar);
+    } else {
+      principalPayment = monthlyPayment.minus(interestPayment);
+    }
+    remaining = remaining.minus(principalPayment);
+    cumulativeInterest = cumulativeInterest.plus(interestPayment);
+
+    const principalYen = toYen(principalPayment);
+    principalPaidSoFar += principalYen;
 
     schedule.push({
       month: m,
-      principalPayment,
-      interestPayment,
-      totalPayment: monthlyPayment,
-      remainingBalance: Math.max(0, remaining),
-      cumulativeInterest,
+      principalPayment: principalYen,
+      interestPayment: toYen(interestPayment),
+      totalPayment: toYen(principalPayment.plus(interestPayment)),
+      remainingBalance: isLast ? 0 : Math.max(0, toYen(remaining)),
+      cumulativeInterest: toYen(cumulativeInterest),
     });
   }
 
@@ -63,25 +80,26 @@ function calculateEqualPrincipal(
   annualRate: number,
   months: number
 ): AmortizationRow[] {
-  const monthlyRate = annualRate / 100 / 12;
-  const monthlyPrincipal = principal / months;
+  const P = new Decimal(principal);
+  const monthlyRate = new Decimal(annualRate).div(100).div(12);
+  const monthlyPrincipal = P.div(months);
   const schedule: AmortizationRow[] = [];
-  let remaining = principal;
-  let cumulativeInterest = 0;
+  let remaining = P;
+  let cumulativeInterest = new Decimal(0);
 
   for (let m = 1; m <= months; m++) {
-    const interestPayment = remaining * monthlyRate;
+    const interestPayment = remaining.times(monthlyRate);
     const principalPayment = m === months ? remaining : monthlyPrincipal;
-    remaining -= principalPayment;
-    cumulativeInterest += interestPayment;
+    remaining = remaining.minus(principalPayment);
+    cumulativeInterest = cumulativeInterest.plus(interestPayment);
 
     schedule.push({
       month: m,
-      principalPayment,
-      interestPayment,
-      totalPayment: principalPayment + interestPayment,
-      remainingBalance: Math.max(0, remaining),
-      cumulativeInterest,
+      principalPayment: toYen(principalPayment),
+      interestPayment: toYen(interestPayment),
+      totalPayment: toYen(principalPayment.plus(interestPayment)),
+      remainingBalance: Math.max(0, toYen(remaining)),
+      cumulativeInterest: toYen(cumulativeInterest),
     });
   }
 
@@ -97,23 +115,24 @@ function calculateBulletRepayment(
   annualRate: number,
   months: number
 ): AmortizationRow[] {
-  const monthlyRate = annualRate / 100 / 12;
-  const monthlyInterest = principal * monthlyRate;
+  const P = new Decimal(principal);
+  const monthlyRate = new Decimal(annualRate).div(100).div(12);
+  const monthlyInterest = P.times(monthlyRate);
   const schedule: AmortizationRow[] = [];
-  let cumulativeInterest = 0;
+  let cumulativeInterest = new Decimal(0);
 
   for (let m = 1; m <= months; m++) {
     const isLast = m === months;
-    const principalPayment = isLast ? principal : 0;
-    cumulativeInterest += monthlyInterest;
+    const principalPayment = isLast ? P : new Decimal(0);
+    cumulativeInterest = cumulativeInterest.plus(monthlyInterest);
 
     schedule.push({
       month: m,
-      principalPayment,
-      interestPayment: monthlyInterest,
-      totalPayment: principalPayment + monthlyInterest,
+      principalPayment: toYen(principalPayment),
+      interestPayment: toYen(monthlyInterest),
+      totalPayment: toYen(principalPayment.plus(monthlyInterest)),
       remainingBalance: isLast ? 0 : principal,
-      cumulativeInterest,
+      cumulativeInterest: toYen(cumulativeInterest),
     });
   }
 
@@ -145,7 +164,7 @@ function toLoanResult(schedule: AmortizationRow[]): LoanResult {
 }
 
 /**
- * 조기상환 시뮬레이션
+ * 중도상환 시뮬레이션
  * 여유자금으로 원금 일부 상환 후 남은 기간 동안의 이자를 재계산
  */
 export function simulatePrepayment(
@@ -156,21 +175,32 @@ export function simulatePrepayment(
   extraFunds: number,
   prepaymentFeeRate: number
 ): PrepaymentResult {
-  // 기존 대출 스케줄
-  const originalSchedule = calculateSchedule(loanBalance, annualRate, remainingMonths, repaymentMethod);
-  const originalLoan = toLoanResult(originalSchedule);
-
-  // 조기상환: 여유자금으로 원금 차감
   const actualPrepayment = Math.min(extraFunds, loanBalance);
   const newBalance = loanBalance - actualPrepayment;
-  const prepaymentFee = actualPrepayment * (prepaymentFeeRate / 100);
+  const prepaymentFee = new Decimal(actualPrepayment)
+    .times(prepaymentFeeRate)
+    .div(100)
+    .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+    .toNumber();
 
-  // 조기상환 후 대출 스케줄
+  const originalSchedule = calculateSchedule(
+    loanBalance,
+    annualRate,
+    remainingMonths,
+    repaymentMethod
+  );
+  const originalLoan = toLoanResult(originalSchedule);
+
   let prepaidLoan: LoanResult;
   if (newBalance <= 0) {
     prepaidLoan = { schedule: [], totalInterest: 0, totalPayment: 0 };
   } else {
-    const prepaidSchedule = calculateSchedule(newBalance, annualRate, remainingMonths, repaymentMethod);
+    const prepaidSchedule = calculateSchedule(
+      newBalance,
+      annualRate,
+      remainingMonths,
+      repaymentMethod
+    );
     prepaidLoan = toLoanResult(prepaidSchedule);
   }
 

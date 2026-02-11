@@ -1,15 +1,26 @@
+import Decimal from "decimal.js";
 import { SavingsResult, TaxType, InterestType } from "./types";
 
 /** 과세 유형별 세율 */
-function getTaxRate(taxType: TaxType): number {
+function getTaxRate(taxType: TaxType): Decimal {
   switch (taxType) {
     case "normal":
-      return 0.154;     // 일반과세 15.4% (소득세 14% + 지방소득세 1.4%)
+      return new Decimal(0.154); // 일반과세 15.4% (소득세 14% + 지방소득세 1.4%)
     case "taxFree":
-      return 0;          // 비과세
+      return new Decimal(0);
     case "taxReduced":
-      return 0.095;      // 세금우대 9.5%
+      return new Decimal(0.095); // 세금우대 9.5%
   }
+}
+
+/** 금액(원)을 Decimal에서 반올림하여 number로 변환 */
+function toYen(d: Decimal): number {
+  return d.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
+}
+
+/** 이자·세금 등 소수점 있을 수 있는 값을 반올림하여 number로 변환 */
+function toRounded(d: Decimal, decimals = 0): number {
+  return d.toDecimalPlaces(decimals, Decimal.ROUND_HALF_UP).toNumber();
 }
 
 /**
@@ -26,31 +37,30 @@ export function calculateSavings(
   taxType: TaxType,
   interestType: InterestType = "monthlyCompound"
 ): SavingsResult {
-  const rate = annualRate / 100;
-  let grossInterest: number;
+  const P = new Decimal(principal);
+  const rate = new Decimal(annualRate).div(100);
+  let grossInterest: Decimal;
 
   if (interestType === "simple") {
-    // 단리 계산
-    const years = months / 12;
-    grossInterest = principal * rate * years;
+    const years = new Decimal(months).div(12);
+    grossInterest = P.times(rate).times(years);
   } else {
-    // 월복리 계산
-    const monthlyRate = rate / 12;
-    const maturityAmount = principal * Math.pow(1 + monthlyRate, months);
-    grossInterest = maturityAmount - principal;
+    const monthlyRate = rate.div(12);
+    const maturityAmount = P.times(new Decimal(1).plus(monthlyRate).pow(months));
+    grossInterest = maturityAmount.minus(P);
   }
 
   const taxRate = getTaxRate(taxType);
-  const tax = grossInterest * taxRate;
-  const netInterest = grossInterest - tax;
-  const totalAmount = principal + netInterest;
+  const tax = grossInterest.times(taxRate);
+  const netInterest = grossInterest.minus(tax);
+  const totalAmount = P.plus(netInterest);
 
   return {
     principal,
-    grossInterest,
-    tax,
-    netInterest,
-    totalAmount,
+    grossInterest: toRounded(grossInterest, 2),
+    tax: toRounded(tax, 2),
+    netInterest: toRounded(netInterest, 2),
+    totalAmount: toRounded(totalAmount, 2),
   };
 }
 
@@ -64,27 +74,26 @@ export function calculateMonthlySavingsAccumulation(
   taxType: TaxType,
   interestType: InterestType = "monthlyCompound"
 ): { month: number; cumulativeNetInterest: number }[] {
+  const P = new Decimal(principal);
+  const rate = new Decimal(annualRate).div(100);
   const taxRate = getTaxRate(taxType);
-  const rate = annualRate / 100;
   const result: { month: number; cumulativeNetInterest: number }[] = [];
 
   for (let m = 1; m <= months; m++) {
-    let grossInterest: number;
+    let grossInterest: Decimal;
 
     if (interestType === "simple") {
-      // 단리 계산
-      const years = m / 12;
-      grossInterest = principal * rate * years;
+      const years = new Decimal(m).div(12);
+      grossInterest = P.times(rate).times(years);
     } else {
-      // 월복리 계산
-      const monthlyRate = rate / 12;
-      const maturityAmount = principal * Math.pow(1 + monthlyRate, m);
-      grossInterest = maturityAmount - principal;
+      const monthlyRate = rate.div(12);
+      const maturityAmount = P.times(new Decimal(1).plus(monthlyRate).pow(m));
+      grossInterest = maturityAmount.minus(P);
     }
 
-    const tax = grossInterest * taxRate;
-    const netInterest = grossInterest - tax;
-    result.push({ month: m, cumulativeNetInterest: netInterest });
+    const tax = grossInterest.times(taxRate);
+    const netInterest = grossInterest.minus(tax);
+    result.push({ month: m, cumulativeNetInterest: toRounded(netInterest, 2) });
   }
 
   return result;
