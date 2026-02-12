@@ -89,7 +89,7 @@ export default function Home() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              대출 최적화
+              대환대출
               {activeTab === "refinance" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
               )}
