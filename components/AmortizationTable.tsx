@@ -54,13 +54,13 @@ export default function AmortizationTable({ prepayment }: AmortizationTableProps
                       {formatKRW(orig.remainingBalance)}
                     </td>
                     <td className="py-1.5 px-2 text-right text-gray-700 border-l border-gray-200">
-                      {prep ? formatKRW(prep.principalPayment) : "-"}
+                      {prepaidLoan.schedule.length === 0 && i === 0 ? "-" : prep ? formatKRW(prep.principalPayment) : "-"}
                     </td>
                     <td className="py-1.5 px-2 text-right text-gray-700">
-                      {prep ? formatKRW(prep.interestPayment) : "-"}
+                      {prepaidLoan.schedule.length === 0 && i === 0 ? "-" : prep ? formatKRW(prep.interestPayment) : "-"}
                     </td>
                     <td className="py-1.5 px-2 text-right text-gray-700">
-                      {prep ? formatKRW(prep.remainingBalance) : "-"}
+                      {prepaidLoan.schedule.length === 0 && i === 0 ? "완납" : prep ? formatKRW(prep.remainingBalance) : "-"}
                     </td>
                     <td className="py-1.5 px-2 text-right font-medium text-blue-600 border-l border-gray-200">
                       {formatKRW(interestDiff)}
