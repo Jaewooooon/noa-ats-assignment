@@ -24,7 +24,18 @@ const defaultInput: RefinanceInput = {
 };
 
 export default function RefinanceSimulator() {
-  const [input, setInput] = useLocalStorage<RefinanceInput>("loan-simulator:refinance-input", defaultInput);
+  const [input, setInput, isLoading] = useLocalStorage<RefinanceInput>("loan-simulator:refinance-input", defaultInput);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   const result = useMemo<RefinanceResult>(() => {
     return simulateRefinance(input);

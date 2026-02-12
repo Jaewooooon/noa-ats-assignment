@@ -26,8 +26,10 @@ const defaultInput: SimulatorInput = {
 };
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useLocalStorage<TabType>("loan-simulator:active-tab", "prepayment");
-  const [input, setInput] = useLocalStorage<SimulatorInput>("loan-simulator:prepayment-input", defaultInput);
+  const [activeTab, setActiveTab, isLoadingTab] = useLocalStorage<TabType>("loan-simulator:active-tab", "prepayment");
+  const [input, setInput, isLoadingInput] = useLocalStorage<SimulatorInput>("loan-simulator:prepayment-input", defaultInput);
+
+  const isLoading = isLoadingTab || isLoadingInput;
 
   const result = useMemo<ComparisonResult>(() => {
     const prepayment = simulatePrepayment(
@@ -100,7 +102,14 @@ export default function Home() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 mt-8">
-        {activeTab === "prepayment" ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+              <p className="text-gray-600">데이터를 불러오는 중...</p>
+            </div>
+          </div>
+        ) : activeTab === "prepayment" ? (
           <div className="space-y-8">
             {/* 입력 폼 */}
             <SimulatorForm input={input} onChange={setInput} />
