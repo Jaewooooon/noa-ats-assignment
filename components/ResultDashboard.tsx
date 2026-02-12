@@ -25,7 +25,7 @@ export default function ResultDashboard({ result }: ResultDashboardProps) {
           </div>
           <div className="flex justify-between">
             <span>중도상환 수수료</span>
-            <span className="font-medium text-red-500">-{formatKRW(prepayment.prepaymentFee)}</span>
+            <span className="font-medium text-orange-600">-{formatKRW(prepayment.prepaymentFee)}</span>
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function ResultDashboard({ result }: ResultDashboardProps) {
           </div>
           <div className="flex justify-between">
             <span>세금</span>
-            <span className="font-medium text-red-500">-{formatKRW(savings.tax)}</span>
+            <span className="font-medium text-orange-600">-{formatKRW(savings.tax)}</span>
           </div>
         </div>
       </div>
