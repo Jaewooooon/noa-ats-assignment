@@ -26,6 +26,10 @@ const defaultInput: RefinanceInput = {
 export default function RefinanceSimulator() {
   const [input, setInput, isLoading] = useLocalStorage<RefinanceInput>("loan-simulator:refinance-input", defaultInput);
 
+  const result = useMemo<RefinanceResult>(() => {
+    return simulateRefinance(input);
+  }, [input]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -36,10 +40,6 @@ export default function RefinanceSimulator() {
       </div>
     );
   }
-
-  const result = useMemo<RefinanceResult>(() => {
-    return simulateRefinance(input);
-  }, [input]);
 
   const update = <K extends keyof RefinanceInput>(key: K, value: RefinanceInput[K]) => {
     setInput({ ...input, [key]: value });
