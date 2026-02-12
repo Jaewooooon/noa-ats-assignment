@@ -4,52 +4,8 @@ import { useState, useMemo } from "react";
 import { RefinanceInput, RefinanceResult, RepaymentMethod } from "@/lib/types";
 import { simulateRefinance } from "@/lib/refinanceCalculator";
 import { formatKRW } from "@/lib/formatter";
-
-const repaymentMethodLabels: Record<RepaymentMethod, string> = {
-  equalPrincipalAndInterest: "원리금균등",
-  equalPrincipal: "원금균등",
-  bulletRepayment: "만기일시",
-};
-
-function NumberInput({
-  label,
-  value,
-  onChange,
-  suffix,
-  step,
-  min,
-  max,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  suffix?: string;
-  step?: number;
-  min?: number;
-  max?: number;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <div className="relative">
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          step={step}
-          min={min}
-          max={max}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-12 text-right text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-        />
-        {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-            {suffix}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
+import { repaymentMethodLabels } from "@/lib/constants";
+import NumberInput from "@/components/ui/NumberInput";
 
 const defaultInput: RefinanceInput = {
   currentBalance: 10_000_000,
