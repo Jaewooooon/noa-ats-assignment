@@ -6,6 +6,8 @@ import { simulateRefinance } from "@/lib/refinanceCalculator";
 import { formatKRW } from "@/lib/formatter";
 import { repaymentMethodLabels } from "@/lib/constants";
 import NumberInput from "@/components/ui/NumberInput";
+import RefinanceRecommendationBanner from "@/components/RefinanceRecommendationBanner";
+import RefinanceResultDashboard from "@/components/RefinanceResultDashboard";
 
 const defaultInput: RefinanceInput = {
   currentBalance: 10_000_000,
@@ -157,61 +159,14 @@ export default function RefinanceSimulator() {
       {/* 결과 */}
       <div className="space-y-6">
         {/* 추천 배너 */}
-        <div className={`rounded-xl p-6 text-center ${
-          result.netBenefit > 0
-            ? "bg-blue-50 border-2 border-blue-500"
-            : "bg-red-50 border-2 border-red-500"
-        }`}>
-          <div className="text-2xl font-bold mb-2">
-            {result.netBenefit > 0 ? "✅ 대환 추천" : "❌ 대환 비추천"}
-          </div>
-          <div className={`text-3xl font-bold ${
-            result.netBenefit > 0 ? "text-blue-700" : "text-red-700"
-          }`}>
-            {result.netBenefit > 0 ? "+" : ""}{formatKRW(result.netBenefit)} 절감
-          </div>
-          {result.netBenefit > 0 && result.breakEvenMonth > 0 && (
-            <div className="mt-2 text-sm text-gray-600">
-              {result.breakEvenMonth}개월 후부터 이득
-            </div>
-          )}
-        </div>
+        <RefinanceRecommendationBanner result={result} />
 
-        {/* 상세 비교 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 기존 대출 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h4 className="text-sm font-medium text-gray-500 mb-1">기존 대출 총 이자</h4>
-            <p className="text-2xl font-bold text-gray-700">
-              {formatKRW(result.currentLoan.totalInterest)}
-            </p>
-            <div className="mt-3 text-sm text-gray-600">
-              <div>총 상환액: {formatKRW(result.currentLoan.totalPayment)}</div>
-            </div>
-          </div>
-
-          {/* 새 대출 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h4 className="text-sm font-medium text-gray-500 mb-1">새 대출 총 이자</h4>
-            <p className="text-2xl font-bold text-green-600">
-              {formatKRW(result.newLoan.totalInterest)}
-            </p>
-            <div className="mt-3 text-sm text-gray-600">
-              <div>총 상환액: {formatKRW(result.newLoan.totalPayment)}</div>
-            </div>
-          </div>
-
-          {/* 이자 절감 */}
-          <div className="bg-blue-50 rounded-xl border-2 border-blue-500 p-5">
-            <h4 className="text-sm font-medium text-gray-500 mb-1">이자 절감액</h4>
-            <p className="text-2xl font-bold text-blue-700">
-              {formatKRW(result.interestSaved)}
-            </p>
-            <div className="mt-3 text-sm text-gray-600">
-              <div className="text-red-600">대환 비용: -{formatKRW(result.totalCost)}</div>
-            </div>
-          </div>
-        </div>
+        {/* 결과 대시보드 */}
+        <RefinanceResultDashboard
+          result={result}
+          currentMonths={input.currentMonths}
+          newMonths={input.newMonths}
+        />
 
         {/* 월 납부액 비교 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -233,7 +188,7 @@ export default function RefinanceSimulator() {
             <div className="text-center">
               <div className="text-sm text-gray-500">차이</div>
               <div className={`text-xl font-bold ${
-                result.monthlyPaymentDiff < 0 ? "text-blue-600" : "text-red-600"
+                result.monthlyPaymentDiff < 0 ? "text-blue-600" : "text-orange-600"
               }`}>
                 {result.monthlyPaymentDiff < 0 ? "" : "+"}{formatKRW(result.monthlyPaymentDiff)}
               </div>
