@@ -4,6 +4,11 @@ export function formatKRW(amount: number): string {
   return rounded.toLocaleString("ko-KR") + "원";
 }
 
+/** 숫자에 쉼표를 추가하여 포맷 (예: 1,234,567) */
+export function formatNumberWithCommas(value: number): string {
+  return value.toLocaleString("ko-KR");
+}
+
 /** 금액을 만원 단위로 포맷 (예: 123.5만원) */
 export function formatManWon(amount: number): string {
   const manWon = amount / 10000;

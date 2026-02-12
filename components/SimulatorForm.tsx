@@ -1,6 +1,7 @@
 "use client";
 
 import { SimulatorInput, RepaymentMethod, TaxType, InterestType } from "@/lib/types";
+import { formatNumberWithCommas } from "@/lib/formatter"; // Import the new formatter
 
 interface SimulatorFormProps {
   input: SimulatorInput;
@@ -56,7 +57,9 @@ function NumberInput({
 }) {
   const fallback = min ?? 0;
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = Number(e.target.value);
+    // Remove commas before converting to Number
+    const rawValue = e.target.value.replace(/,/g, '');
+    const raw = Number(rawValue);
     const sanitized = sanitizeNumber(raw, min, max, fallback);
     onChange(sanitized);
   };
@@ -66,10 +69,10 @@ function NumberInput({
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <div className="relative">
         <input
-          type="number"
-          value={value}
+          type="text" // Changed from "number" to "text"
+          value={formatNumberWithCommas(value)} // Format the displayed value
           onChange={handleChange}
-          step={step}
+          step={step} // step, min, max still useful for input validation logic, though type="text"
           min={min}
           max={max}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-12 text-right text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
