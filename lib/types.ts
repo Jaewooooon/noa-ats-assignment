@@ -69,3 +69,33 @@ export interface ComparisonResult {
   difference: number;             // 중도상환 순이익 - 정기예금 순이익 (양수면 중도상환 유리)
   recommendation: "prepayment" | "savings";
 }
+
+/** 대환대출 입력 값 */
+export interface RefinanceInput {
+  // 기존 대출
+  currentBalance: number;         // 현재 대출 잔액
+  currentRate: number;            // 현재 연 금리 (%)
+  currentMonths: number;          // 현재 잔여 기간 (개월)
+  currentMethod: RepaymentMethod; // 현재 상환 방식
+
+  // 새 대출
+  newRate: number;                // 새 대출 연 금리 (%)
+  newMonths: number;              // 새 대출 기간 (개월)
+  newMethod: RepaymentMethod;     // 새 대출 상환 방식
+
+  // 대환 비용
+  prepaymentFeeRate: number;      // 중도상환 수수료율 (%)
+  stampTax: number;               // 인지세 (원)
+  guaranteeFee: number;           // 보증료 등 기타 비용 (원)
+}
+
+/** 대환대출 비교 결과 */
+export interface RefinanceResult {
+  currentLoan: LoanResult;        // 기존 대출
+  newLoan: LoanResult;            // 새 대출
+  totalCost: number;              // 총 대환 비용 (수수료 + 인지세 + 보증료)
+  interestSaved: number;          // 이자 절감액
+  monthlyPaymentDiff: number;     // 월 납부액 차이 (음수면 감소)
+  netBenefit: number;             // 순이익 (이자절감 - 대환비용)
+  breakEvenMonth: number;         // 손익분기월 (몇 개월 후 이득인지)
+}
