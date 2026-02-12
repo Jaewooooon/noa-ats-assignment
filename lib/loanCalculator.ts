@@ -140,7 +140,7 @@ function calculateBulletRepayment(
 }
 
 /** 상환 방식에 따른 스케줄 계산 */
-function calculateSchedule(
+export function calculateSchedule(
   principal: number,
   annualRate: number,
   months: number,
@@ -157,7 +157,7 @@ function calculateSchedule(
 }
 
 /** 스케줄로부터 LoanResult 생성 */
-function toLoanResult(schedule: AmortizationRow[]): LoanResult {
+export function toLoanResult(schedule: AmortizationRow[]): LoanResult {
   const totalInterest = schedule.reduce((sum, r) => sum + r.interestPayment, 0);
   const totalPayment = schedule.reduce((sum, r) => sum + r.totalPayment, 0);
   return { schedule, totalInterest, totalPayment };

@@ -53,7 +53,7 @@ describe("simulateRefinance", () => {
     const currentAvg = result.currentLoan.totalPayment / baseInput.currentMonths;
     const newAvg = result.newLoan.totalPayment / baseInput.newMonths;
 
-    expect(result.monthlyPaymentDiff).toBe(newAvg - currentAvg);
+    expect(result.monthlyPaymentDiff).toBe(Math.round(newAvg - currentAvg));
   });
 
   it("손익분기월을 올바르게 계산한다", () => {

@@ -1,147 +1,67 @@
-import { RefinanceInput, RefinanceResult, LoanResult, RepaymentMethod } from "./types";
+import Decimal from "decimal.js";
+import { RefinanceInput, RefinanceResult, RepaymentMethod } from "./types";
+import { calculateSchedule, toLoanResult, AmortizationRow, LoanResult } from "./loanCalculator";
 
-/**
- * 원리금균등상환 스케줄 계산 (단순화 버전)
- */
-function calculateLoan(
-  principal: number,
-  annualRate: number,
-  months: number,
-  method: RepaymentMethod
-): LoanResult {
-  const monthlyRate = annualRate / 100 / 12;
-  let totalInterest = 0;
-  let totalPayment = 0;
-  const schedule = [];
-
-  if (method === "equalPrincipalAndInterest") {
-    // 원리금균등상환
-    if (monthlyRate === 0) {
-      const monthlyPayment = principal / months;
-      totalPayment = principal;
-      totalInterest = 0;
-    } else {
-      const monthlyPayment =
-        principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) /
-        (Math.pow(1 + monthlyRate, months) - 1);
-
-      let remaining = principal;
-      for (let m = 1; m <= months; m++) {
-        const interestPayment = remaining * monthlyRate;
-        const principalPayment = monthlyPayment - interestPayment;
-        remaining -= principalPayment;
-        totalInterest += interestPayment;
-        totalPayment += monthlyPayment;
-
-        schedule.push({
-          month: m,
-          principalPayment,
-          interestPayment,
-          totalPayment: monthlyPayment,
-          remainingBalance: Math.max(0, remaining),
-          cumulativeInterest: totalInterest,
-        });
-      }
-    }
-  } else if (method === "equalPrincipal") {
-    // 원금균등상환
-    const monthlyPrincipal = principal / months;
-    let remaining = principal;
-
-    for (let m = 1; m <= months; m++) {
-      const interestPayment = remaining * monthlyRate;
-      const principalPayment = m === months ? remaining : monthlyPrincipal;
-      remaining -= principalPayment;
-      totalInterest += interestPayment;
-      const payment = principalPayment + interestPayment;
-      totalPayment += payment;
-
-      schedule.push({
-        month: m,
-        principalPayment,
-        interestPayment,
-        totalPayment: payment,
-        remainingBalance: Math.max(0, remaining),
-        cumulativeInterest: totalInterest,
-      });
-    }
-  } else {
-    // 만기일시상환
-    const monthlyInterest = principal * monthlyRate;
-
-    for (let m = 1; m <= months; m++) {
-      const isLast = m === months;
-      const principalPayment = isLast ? principal : 0;
-      totalInterest += monthlyInterest;
-      const payment = principalPayment + monthlyInterest;
-      totalPayment += payment;
-
-      schedule.push({
-        month: m,
-        principalPayment,
-        interestPayment: monthlyInterest,
-        totalPayment: payment,
-        remainingBalance: isLast ? 0 : principal,
-        cumulativeInterest: totalInterest,
-      });
-    }
-  }
-
-  return {
-    schedule,
-    totalInterest,
-    totalPayment,
-  };
+/** 금액(원)을 Decimal에서 반올림하여 number로 변환 */
+function toYen(d: Decimal): number {
+  return d.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
 }
 
 /**
  * 대환대출 시뮬레이션
  */
 export function simulateRefinance(input: RefinanceInput): RefinanceResult {
+  const currentBalanceD = new Decimal(input.currentBalance);
+  const prepaymentFeeRateD = new Decimal(input.prepaymentFeeRate);
+  const stampTaxD = new Decimal(input.stampTax);
+  const guaranteeFeeD = new Decimal(input.guaranteeFee);
+
   // 기존 대출 계산
-  const currentLoan = calculateLoan(
+  const currentLoanSchedule = calculateSchedule(
     input.currentBalance,
     input.currentRate,
     input.currentMonths,
     input.currentMethod
   );
+  const currentLoan = toLoanResult(currentLoanSchedule);
 
   // 새 대출 계산
-  const newLoan = calculateLoan(
-    input.currentBalance,
+  const newLoanSchedule = calculateSchedule(
+    input.currentBalance, // 대환대출은 기존 대출 잔액을 기준으로 함
     input.newRate,
     input.newMonths,
     input.newMethod
   );
+  const newLoan = toLoanResult(newLoanSchedule);
 
   // 대환 비용 계산
-  const prepaymentFee = input.currentBalance * (input.prepaymentFeeRate / 100);
-  const totalCost = prepaymentFee + input.stampTax + input.guaranteeFee;
+  const prepaymentFee = currentBalanceD.times(prepaymentFeeRateD.div(100));
+  const totalCost = prepaymentFee.plus(stampTaxD).plus(guaranteeFeeD);
 
   // 이자 절감액
-  const interestSaved = currentLoan.totalInterest - newLoan.totalInterest;
+  const interestSaved = new Decimal(currentLoan.totalInterest).minus(new Decimal(newLoan.totalInterest));
 
   // 월 납부액 차이 (평균)
-  const currentAvgMonthly = currentLoan.totalPayment / input.currentMonths;
-  const newAvgMonthly = newLoan.totalPayment / input.newMonths;
-  const monthlyPaymentDiff = newAvgMonthly - currentAvgMonthly;
+  const currentAvgMonthly = new Decimal(currentLoan.totalPayment).div(input.currentMonths);
+  const newAvgMonthly = new Decimal(newLoan.totalPayment).div(input.newMonths);
+  const monthlyPaymentDiff = newAvgMonthly.minus(currentAvgMonthly);
 
   // 순이익
-  const netBenefit = interestSaved - totalCost;
+  const netBenefit = interestSaved.minus(totalCost);
 
   // 손익분기월 계산 (대환 비용을 월 절감액으로 회수하는데 걸리는 기간)
   let breakEvenMonth = 0;
-  if (monthlyPaymentDiff < 0) {
-    breakEvenMonth = Math.ceil(totalCost / Math.abs(monthlyPaymentDiff));
+  if (monthlyPaymentDiff.isNegative()) {
+    breakEvenMonth = Math.ceil(totalCost.div(monthlyPaymentDiff.abs()).toNumber());
   }
 
   return {
     currentLoan,
     newLoan,
-    totalCost,
-    interestSaved,
-    monthlyPaymentDiff,
-    netBenefit,
+    totalCost: toYen(totalCost),
+    interestSaved: toYen(interestSaved),
+    monthlyPaymentDiff: toYen(monthlyPaymentDiff),
+    netBenefit: toYen(netBenefit),
     breakEvenMonth,
   };
 }
