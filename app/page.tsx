@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { SimulatorInput, ComparisonResult } from "@/lib/types";
 import { simulatePrepayment } from "@/lib/loanCalculator";
 import { calculateSavings } from "@/lib/savingsCalculator";
@@ -9,6 +9,7 @@ import ResultDashboard from "@/components/ResultDashboard";
 import RecommendationBanner from "@/components/RecommendationBanner";
 import AmortizationTable from "@/components/AmortizationTable";
 import RefinanceSimulator from "@/components/RefinanceSimulator";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 type TabType = "prepayment" | "refinance";
 
@@ -25,8 +26,8 @@ const defaultInput: SimulatorInput = {
 };
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabType>("prepayment");
-  const [input, setInput] = useState<SimulatorInput>(defaultInput);
+  const [activeTab, setActiveTab] = useLocalStorage<TabType>("loan-simulator:active-tab", "prepayment");
+  const [input, setInput] = useLocalStorage<SimulatorInput>("loan-simulator:prepayment-input", defaultInput);
 
   const result = useMemo<ComparisonResult>(() => {
     const prepayment = simulatePrepayment(

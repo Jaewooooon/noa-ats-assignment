@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { simulatePrepayment } from "./loanCalculator";
 
 describe("simulatePrepayment", () => {
-  it("조기상환 시 이자 절감액과 수수료를 올바르게 계산한다", () => {
+  it("중도상환 시 이자 절감액과 수수료를 올바르게 계산한다", () => {
     const result = simulatePrepayment(
       50_000_000, // loanBalance
       4.5, // annualRate
@@ -22,7 +22,7 @@ describe("simulatePrepayment", () => {
     expect(result.netBenefit).toBe(result.interestSaved - result.prepaymentFee);
   });
 
-  it("조기상환 금액이 대출 잔액보다 클 때 잔액만큼만 상환한다", () => {
+  it("중도상환 금액이 대출 잔액보다 클 때 잔액만큼만 상환한다", () => {
     const result = simulatePrepayment(
       10_000_000, // loanBalance
       4.5,

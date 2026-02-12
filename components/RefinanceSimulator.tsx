@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { RefinanceInput, RefinanceResult, RepaymentMethod } from "@/lib/types";
 import { simulateRefinance } from "@/lib/refinanceCalculator";
 import { formatKRW } from "@/lib/formatter";
@@ -8,6 +8,7 @@ import { repaymentMethodLabels } from "@/lib/constants";
 import NumberInput from "@/components/ui/NumberInput";
 import RefinanceRecommendationBanner from "@/components/RefinanceRecommendationBanner";
 import RefinanceResultDashboard from "@/components/RefinanceResultDashboard";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const defaultInput: RefinanceInput = {
   currentBalance: 10_000_000,
@@ -23,7 +24,7 @@ const defaultInput: RefinanceInput = {
 };
 
 export default function RefinanceSimulator() {
-  const [input, setInput] = useState<RefinanceInput>(defaultInput);
+  const [input, setInput] = useLocalStorage<RefinanceInput>("loan-simulator:refinance-input", defaultInput);
 
   const result = useMemo<RefinanceResult>(() => {
     return simulateRefinance(input);
