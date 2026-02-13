@@ -23,6 +23,18 @@ function toRounded(d: Decimal, decimals = 0): number {
   return d.toDecimalPlaces(decimals, Decimal.ROUND_HALF_UP).toNumber();
 }
 
+function assertNonNegative(name: string, value: number) {
+  if (!Number.isFinite(value) || Number.isNaN(value) || value < 0) {
+    throw new RangeError(`${name} must be a non-negative finite number`);
+  }
+}
+
+function assertPositiveInteger(name: string, value: number) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new RangeError(`${name} must be a positive integer`);
+  }
+}
+
 /**
  * 정기예금 (거치식) 수익 계산
  * 일시 납입 → 만기 수령
@@ -37,6 +49,10 @@ export function calculateSavings(
   taxType: TaxType,
   interestType: InterestType = "monthlyCompound"
 ): SavingsResult {
+  assertNonNegative("principal", principal);
+  assertNonNegative("annualRate", annualRate);
+  assertPositiveInteger("months", months);
+
   const P = new Decimal(principal);
   const rate = new Decimal(annualRate).div(100);
   let grossInterest: Decimal;
@@ -74,6 +90,10 @@ export function calculateMonthlySavingsAccumulation(
   taxType: TaxType,
   interestType: InterestType = "monthlyCompound"
 ): { month: number; cumulativeNetInterest: number }[] {
+  assertNonNegative("principal", principal);
+  assertNonNegative("annualRate", annualRate);
+  assertPositiveInteger("months", months);
+
   const P = new Decimal(principal);
   const rate = new Decimal(annualRate).div(100);
   const taxRate = getTaxRate(taxType);

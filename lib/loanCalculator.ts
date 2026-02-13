@@ -6,6 +6,18 @@ function toYen(d: Decimal): number {
   return d.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
 }
 
+function assertNonNegative(name: string, value: number) {
+  if (!Number.isFinite(value) || Number.isNaN(value) || value < 0) {
+    throw new RangeError(`${name} must be a non-negative finite number`);
+  }
+}
+
+function assertPositiveInteger(name: string, value: number) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new RangeError(`${name} must be a positive integer`);
+  }
+}
+
 /**
  * 원리금균등상환 스케줄 계산
  * 월 상환액 = P × r(1+r)^n / ((1+r)^n - 1)
@@ -146,6 +158,10 @@ export function calculateSchedule(
   months: number,
   method: RepaymentMethod
 ): AmortizationRow[] {
+  assertNonNegative("principal", principal);
+  assertNonNegative("annualRate", annualRate);
+  assertPositiveInteger("months", months);
+
   switch (method) {
     case "equalPrincipalAndInterest":
       return calculateEqualPrincipalAndInterest(principal, annualRate, months);
@@ -175,6 +191,12 @@ export function simulatePrepayment(
   extraFunds: number,
   prepaymentFeeRate: number
 ): PrepaymentResult {
+  assertNonNegative("loanBalance", loanBalance);
+  assertNonNegative("annualRate", annualRate);
+  assertPositiveInteger("remainingMonths", remainingMonths);
+  assertNonNegative("extraFunds", extraFunds);
+  assertNonNegative("prepaymentFeeRate", prepaymentFeeRate);
+
   const actualPrepayment = Math.min(extraFunds, loanBalance);
   const newBalance = loanBalance - actualPrepayment;
   const prepaymentFee = new Decimal(actualPrepayment)

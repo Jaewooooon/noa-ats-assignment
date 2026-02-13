@@ -7,10 +7,31 @@ function toYen(d: Decimal): number {
   return d.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
 }
 
+function assertNonNegative(name: string, value: number) {
+  if (!Number.isFinite(value) || Number.isNaN(value) || value < 0) {
+    throw new RangeError(`${name} must be a non-negative finite number`);
+  }
+}
+
+function assertPositiveInteger(name: string, value: number) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new RangeError(`${name} must be a positive integer`);
+  }
+}
+
 /**
  * 대환대출 시뮬레이션
  */
 export function simulateRefinance(input: RefinanceInput): RefinanceResult {
+  assertNonNegative("currentBalance", input.currentBalance);
+  assertNonNegative("currentRate", input.currentRate);
+  assertPositiveInteger("currentMonths", input.currentMonths);
+  assertNonNegative("newRate", input.newRate);
+  assertPositiveInteger("newMonths", input.newMonths);
+  assertNonNegative("prepaymentFeeRate", input.prepaymentFeeRate);
+  assertNonNegative("stampTax", input.stampTax);
+  assertNonNegative("guaranteeFee", input.guaranteeFee);
+
   const currentBalanceD = new Decimal(input.currentBalance);
   const prepaymentFeeRateD = new Decimal(input.prepaymentFeeRate);
   const stampTaxD = new Decimal(input.stampTax);
