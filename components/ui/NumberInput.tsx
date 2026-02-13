@@ -11,16 +11,18 @@ interface NumberInputProps {
   step?: number;
   min?: number;
   max?: number;
+  integerOnly?: boolean;
 }
 
 function sanitizeNumber(
   raw: number,
   min: number | undefined,
   max: number | undefined,
-  fallback: number
+  fallback: number,
+  integerOnly: boolean
 ): number {
   if (!Number.isFinite(raw) || Number.isNaN(raw)) return fallback;
-  let v = raw;
+  let v = integerOnly ? Math.trunc(raw) : raw;
   if (min !== undefined && v < min) v = min;
   if (max !== undefined && v > max) v = max;
   return v;
@@ -34,6 +36,7 @@ export default function NumberInput({
   step,
   min,
   max,
+  integerOnly = false,
 }: NumberInputProps) {
   const fallback = min ?? 0;
   const [inputValue, setInputValue] = useState(formatNumberWithCommas(value));
@@ -54,7 +57,7 @@ export default function NumberInput({
     if (rawValue === "" || rawValue === ".") return;
 
     const raw = Number(rawValue);
-    const sanitized = sanitizeNumber(raw, min, max, fallback);
+    const sanitized = sanitizeNumber(raw, min, max, fallback, integerOnly);
     onChange(sanitized);
   };
 
@@ -67,7 +70,7 @@ export default function NumberInput({
     setIsFocused(false);
     const rawValue = inputValue.replace(/,/g, "");
     const raw = Number(rawValue);
-    const sanitized = sanitizeNumber(raw, min, max, fallback);
+    const sanitized = sanitizeNumber(raw, min, max, fallback, integerOnly);
     onChange(sanitized);
     setInputValue(formatNumberWithCommas(sanitized));
   };

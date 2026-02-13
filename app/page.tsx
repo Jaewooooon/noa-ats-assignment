@@ -11,6 +11,7 @@ import AmortizationTable from "@/components/AmortizationTable";
 import RefinanceSimulator from "@/components/RefinanceSimulator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { getComparisonRecommendation } from "@/lib/recommendation";
+import { toUserFacingErrorMessage } from "@/lib/errorMessage";
 
 type TabType = "prepayment" | "refinance";
 
@@ -32,33 +33,46 @@ export default function Home() {
 
   const isLoading = isLoadingTab || isLoadingInput;
 
-  const result = useMemo<ComparisonResult>(() => {
-    const prepayment = simulatePrepayment(
-      input.loanBalance,
-      input.loanRate,
-      input.remainingMonths,
-      input.repaymentMethod,
-      input.extraFunds,
-      input.prepaymentFeeRate
-    );
+  const { result, errorMessage } = useMemo<{
+    result: ComparisonResult | null;
+    errorMessage: string | null;
+  }>(() => {
+    try {
+      const prepayment = simulatePrepayment(
+        input.loanBalance,
+        input.loanRate,
+        input.remainingMonths,
+        input.repaymentMethod,
+        input.extraFunds,
+        input.prepaymentFeeRate
+      );
 
-    const savings = calculateSavings(
-      input.extraFunds,
-      input.savingsRate,
-      input.remainingMonths,
-      input.taxType,
-      input.interestType
-    );
+      const savings = calculateSavings(
+        input.extraFunds,
+        input.savingsRate,
+        input.remainingMonths,
+        input.taxType,
+        input.interestType
+      );
 
-    const difference = prepayment.netBenefit - savings.netInterest;
-    const recommendation = getComparisonRecommendation(difference);
+      const difference = prepayment.netBenefit - savings.netInterest;
+      const recommendation = getComparisonRecommendation(difference);
 
-    return {
-      prepayment,
-      savings,
-      difference,
-      recommendation,
-    };
+      return {
+        result: {
+          prepayment,
+          savings,
+          difference,
+          recommendation,
+        },
+        errorMessage: null,
+      };
+    } catch (error) {
+      return {
+        result: null,
+        errorMessage: toUserFacingErrorMessage(error),
+      };
+    }
   }, [input]);
 
   return (
@@ -116,14 +130,22 @@ export default function Home() {
             {/* 입력 폼 */}
             <SimulatorForm input={input} onChange={setInput} />
 
-            {/* 추천 배너 */}
-            <RecommendationBanner result={result} />
+            {errorMessage ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {errorMessage}
+              </div>
+            ) : result ? (
+              <>
+                {/* 추천 배너 */}
+                <RecommendationBanner result={result} />
 
-            {/* 결과 대시보드 */}
-            <ResultDashboard result={result} />
+                {/* 결과 대시보드 */}
+                <ResultDashboard result={result} />
 
-            {/* 상환 스케줄 */}
-            <AmortizationTable prepayment={result.prepayment} />
+                {/* 상환 스케줄 */}
+                <AmortizationTable prepayment={result.prepayment} />
+              </>
+            ) : null}
           </div>
         ) : (
           <RefinanceSimulator />

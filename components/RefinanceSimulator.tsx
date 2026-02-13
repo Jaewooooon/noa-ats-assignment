@@ -9,6 +9,7 @@ import NumberInput from "@/components/ui/NumberInput";
 import RefinanceRecommendationBanner from "@/components/RefinanceRecommendationBanner";
 import RefinanceResultDashboard from "@/components/RefinanceResultDashboard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { toUserFacingErrorMessage } from "@/lib/errorMessage";
 
 const defaultInput: RefinanceInput = {
   currentBalance: 10_000_000,
@@ -26,8 +27,21 @@ const defaultInput: RefinanceInput = {
 export default function RefinanceSimulator() {
   const [input, setInput, isLoading] = useLocalStorage<RefinanceInput>("loan-simulator:refinance-input", defaultInput);
 
-  const result = useMemo<RefinanceResult>(() => {
-    return simulateRefinance(input);
+  const { result, errorMessage } = useMemo<{
+    result: RefinanceResult | null;
+    errorMessage: string | null;
+  }>(() => {
+    try {
+      return {
+        result: simulateRefinance(input),
+        errorMessage: null,
+      };
+    } catch (error) {
+      return {
+        result: null,
+        errorMessage: toUserFacingErrorMessage(error),
+      };
+    }
   }, [input]);
 
   if (isLoading) {
@@ -78,6 +92,7 @@ export default function RefinanceSimulator() {
               step={1}
               min={1}
               max={480}
+              integerOnly
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">상환 방식</label>
@@ -117,6 +132,7 @@ export default function RefinanceSimulator() {
               step={1}
               min={1}
               max={480}
+              integerOnly
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">상환 방식</label>
@@ -170,43 +186,51 @@ export default function RefinanceSimulator() {
 
       {/* 결과 */}
       <div className="space-y-6">
-        {/* 추천 배너 */}
-        <RefinanceRecommendationBanner result={result} />
-
-        {/* 결과 대시보드 */}
-        <RefinanceResultDashboard
-          result={result}
-          currentMonths={input.currentMonths}
-          newMonths={input.newMonths}
-        />
-
-        {/* 월 납부액 비교 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h4 className="text-base font-semibold text-gray-900 mb-4">월 납부액 변화</h4>
-          <div className="flex items-center justify-center gap-4">
-            <div className="text-center">
-              <div className="text-sm text-gray-500">기존 (평균)</div>
-              <div className="text-xl font-bold text-gray-700">
-                {formatKRW(result.currentLoan.totalPayment / input.currentMonths)}
-              </div>
-            </div>
-            <div className="text-2xl text-gray-400">→</div>
-            <div className="text-center">
-              <div className="text-sm text-gray-500">새 대출 (평균)</div>
-              <div className="text-xl font-bold text-green-600">
-                {formatKRW(result.newLoan.totalPayment / input.newMonths)}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm text-gray-500">차이</div>
-              <div className={`text-xl font-bold ${
-                result.monthlyPaymentDiff < 0 ? "text-blue-600" : "text-orange-600"
-              }`}>
-                {result.monthlyPaymentDiff < 0 ? "" : "+"}{formatKRW(result.monthlyPaymentDiff)}
-              </div>
-            </div>
+        {errorMessage ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {errorMessage}
           </div>
-        </div>
+        ) : result ? (
+          <>
+            {/* 추천 배너 */}
+            <RefinanceRecommendationBanner result={result} />
+
+            {/* 결과 대시보드 */}
+            <RefinanceResultDashboard
+              result={result}
+              currentMonths={input.currentMonths}
+              newMonths={input.newMonths}
+            />
+
+            {/* 월 납부액 비교 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h4 className="text-base font-semibold text-gray-900 mb-4">월 납부액 변화</h4>
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-center">
+                  <div className="text-sm text-gray-500">기존 (평균)</div>
+                  <div className="text-xl font-bold text-gray-700">
+                    {formatKRW(result.currentLoan.totalPayment / input.currentMonths)}
+                  </div>
+                </div>
+                <div className="text-2xl text-gray-400">→</div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-500">새 대출 (평균)</div>
+                  <div className="text-xl font-bold text-green-600">
+                    {formatKRW(result.newLoan.totalPayment / input.newMonths)}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-500">차이</div>
+                  <div className={`text-xl font-bold ${
+                    result.monthlyPaymentDiff < 0 ? "text-blue-600" : "text-orange-600"
+                  }`}>
+                    {result.monthlyPaymentDiff < 0 ? "" : "+"}{formatKRW(result.monthlyPaymentDiff)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

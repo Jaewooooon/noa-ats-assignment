@@ -63,6 +63,7 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             step={1}
             min={1}
             max={480}
+            integerOnly
           />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">상환 방식</label>
