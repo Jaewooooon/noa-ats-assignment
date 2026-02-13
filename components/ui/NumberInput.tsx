@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { formatNumberWithCommas } from "@/lib/formatter";
 
 interface NumberInputProps {
@@ -35,11 +36,40 @@ export default function NumberInput({
   max,
 }: NumberInputProps) {
   const fallback = min ?? 0;
+  const [inputValue, setInputValue] = useState(formatNumberWithCommas(value));
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setInputValue(formatNumberWithCommas(value));
+    }
+  }, [value, isFocused]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/,/g, '');
+    const rawValue = e.target.value.replace(/,/g, "");
+    if (!/^\d*\.?\d*$/.test(rawValue)) return;
+
+    setInputValue(rawValue);
+
+    if (rawValue === "" || rawValue === ".") return;
+
     const raw = Number(rawValue);
     const sanitized = sanitizeNumber(raw, min, max, fallback);
     onChange(sanitized);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setInputValue(String(value));
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    const rawValue = inputValue.replace(/,/g, "");
+    const raw = Number(rawValue);
+    const sanitized = sanitizeNumber(raw, min, max, fallback);
+    onChange(sanitized);
+    setInputValue(formatNumberWithCommas(sanitized));
   };
 
   return (
@@ -48,8 +78,11 @@ export default function NumberInput({
       <div className="relative">
         <input
           type="text"
-          value={formatNumberWithCommas(value)}
+          inputMode="decimal"
+          value={inputValue}
           onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           step={step}
           min={min}
           max={max}
