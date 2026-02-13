@@ -10,6 +10,7 @@ import RefinanceRecommendationBanner from "@/components/RefinanceRecommendationB
 import RefinanceResultDashboard from "@/components/RefinanceResultDashboard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { toUserFacingErrorMessage } from "@/lib/errorMessage";
+import { isRefinanceInput } from "@/lib/inputValidators";
 
 const defaultInput: RefinanceInput = {
   currentBalance: 10_000_000,
@@ -25,7 +26,11 @@ const defaultInput: RefinanceInput = {
 };
 
 export default function RefinanceSimulator() {
-  const [input, setInput, isLoading] = useLocalStorage<RefinanceInput>("loan-simulator:refinance-input", defaultInput);
+  const [input, setInput, isLoading] = useLocalStorage<RefinanceInput>(
+    "loan-simulator:refinance-input",
+    defaultInput,
+    isRefinanceInput
+  );
 
   const { result, errorMessage } = useMemo<{
     result: RefinanceResult | null;

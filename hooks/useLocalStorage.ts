@@ -8,7 +8,8 @@ import { useState, useEffect } from "react";
  */
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
+  validator?: (value: unknown) => value is T
 ): [T, (value: T | ((prev: T) => T)) => void, boolean] {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,14 +19,23 @@ export function useLocalStorage<T>(
     try {
       const item = window.localStorage.getItem(key);
       if (item) {
-        setStoredValue(JSON.parse(item));
+        const parsed: unknown = JSON.parse(item);
+        const isValid = validator ? validator(parsed) : true;
+        if (isValid) {
+          setStoredValue(parsed as T);
+        } else {
+          setStoredValue(initialValue);
+          window.localStorage.removeItem(key);
+        }
       }
     } catch (error) {
+      setStoredValue(initialValue);
+      window.localStorage.removeItem(key);
       console.warn(`Error reading localStorage key "${key}":`, error);
     } finally {
       setIsLoading(false);
     }
-  }, [key]);
+  }, [initialValue, key, validator]);
 
   // localStorage에 저장
   useEffect(() => {

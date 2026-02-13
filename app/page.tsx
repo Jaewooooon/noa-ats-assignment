@@ -12,6 +12,7 @@ import RefinanceSimulator from "@/components/RefinanceSimulator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { getComparisonRecommendation } from "@/lib/recommendation";
 import { toUserFacingErrorMessage } from "@/lib/errorMessage";
+import { isSimulatorInput, isTabType } from "@/lib/inputValidators";
 
 type TabType = "prepayment" | "refinance";
 
@@ -28,8 +29,16 @@ const defaultInput: SimulatorInput = {
 };
 
 export default function Home() {
-  const [activeTab, setActiveTab, isLoadingTab] = useLocalStorage<TabType>("loan-simulator:active-tab", "prepayment");
-  const [input, setInput, isLoadingInput] = useLocalStorage<SimulatorInput>("loan-simulator:prepayment-input", defaultInput);
+  const [activeTab, setActiveTab, isLoadingTab] = useLocalStorage<TabType>(
+    "loan-simulator:active-tab",
+    "prepayment",
+    isTabType
+  );
+  const [input, setInput, isLoadingInput] = useLocalStorage<SimulatorInput>(
+    "loan-simulator:prepayment-input",
+    defaultInput,
+    isSimulatorInput
+  );
 
   const isLoading = isLoadingTab || isLoadingInput;
 
