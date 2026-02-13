@@ -3,15 +3,17 @@
 import { RefinanceResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
 import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
+import { getRefinanceRecommendation } from "@/lib/recommendation";
 
 interface RefinanceRecommendationBannerProps {
   result: RefinanceResult;
 }
 
 export default function RefinanceRecommendationBanner({ result }: RefinanceRecommendationBannerProps) {
+  const recommendation = getRefinanceRecommendation(result.netBenefit);
   const absNetBenefit = Math.abs(result.netBenefit);
-  const isSimilar = absNetBenefit <= COMPARISON_SIMILARITY_THRESHOLD;
-  const isRecommended = result.netBenefit > COMPARISON_SIMILARITY_THRESHOLD;
+  const isSimilar = recommendation === "similar";
+  const isRecommended = recommendation === "refinance";
 
   return (
     <div className={`rounded-xl p-6 ${

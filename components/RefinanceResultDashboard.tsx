@@ -3,6 +3,7 @@
 import { RefinanceResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
 import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
+import { getRefinanceRecommendation } from "@/lib/recommendation";
 
 interface RefinanceResultDashboardProps {
   result: RefinanceResult;
@@ -16,7 +17,7 @@ export default function RefinanceResultDashboard({
   newMonths
 }: RefinanceResultDashboardProps) {
   const absNetBenefit = Math.abs(result.netBenefit);
-  const isSimilar = absNetBenefit <= COMPARISON_SIMILARITY_THRESHOLD;
+  const isSimilar = getRefinanceRecommendation(result.netBenefit) === "similar";
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
