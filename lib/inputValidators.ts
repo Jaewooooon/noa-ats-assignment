@@ -1,15 +1,16 @@
 import { RefinanceInput, RepaymentMethod, SimulatorInput, TaxType, InterestType } from "./types";
+import {
+  isInRange,
+  isPositiveIntegerInRange,
+  VALIDATION_RULES,
+} from "./validationRules";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value) && !Number.isNaN(value);
-}
-
-function isPositiveInteger(value: unknown): value is number {
-  return Number.isInteger(value) && (value as number) > 0;
+function isNumberInRange(value: unknown, range: { min: number; max?: number }): value is number {
+  return typeof value === "number" && isInRange(value, range);
 }
 
 function isRepaymentMethod(value: unknown): value is RepaymentMethod {
@@ -36,13 +37,13 @@ export function isSimulatorInput(value: unknown): value is SimulatorInput {
   if (!isObjectRecord(value)) return false;
 
   return (
-    isFiniteNumber(value.loanBalance) &&
-    isFiniteNumber(value.loanRate) &&
-    isPositiveInteger(value.remainingMonths) &&
+    isNumberInRange(value.loanBalance, VALIDATION_RULES.loanBalance) &&
+    isNumberInRange(value.loanRate, VALIDATION_RULES.rate) &&
+    isPositiveIntegerInRange(value.remainingMonths, VALIDATION_RULES.months) &&
     isRepaymentMethod(value.repaymentMethod) &&
-    isFiniteNumber(value.prepaymentFeeRate) &&
-    isFiniteNumber(value.extraFunds) &&
-    isFiniteNumber(value.savingsRate) &&
+    isNumberInRange(value.prepaymentFeeRate, VALIDATION_RULES.prepaymentFeeRate) &&
+    isNumberInRange(value.extraFunds, VALIDATION_RULES.loanBalance) &&
+    isNumberInRange(value.savingsRate, VALIDATION_RULES.savingsRate) &&
     isTaxType(value.taxType) &&
     isInterestType(value.interestType)
   );
@@ -52,15 +53,15 @@ export function isRefinanceInput(value: unknown): value is RefinanceInput {
   if (!isObjectRecord(value)) return false;
 
   return (
-    isFiniteNumber(value.currentBalance) &&
-    isFiniteNumber(value.currentRate) &&
-    isPositiveInteger(value.currentMonths) &&
+    isNumberInRange(value.currentBalance, VALIDATION_RULES.loanBalance) &&
+    isNumberInRange(value.currentRate, VALIDATION_RULES.rate) &&
+    isPositiveIntegerInRange(value.currentMonths, VALIDATION_RULES.months) &&
     isRepaymentMethod(value.currentMethod) &&
-    isFiniteNumber(value.newRate) &&
-    isPositiveInteger(value.newMonths) &&
+    isNumberInRange(value.newRate, VALIDATION_RULES.rate) &&
+    isPositiveIntegerInRange(value.newMonths, VALIDATION_RULES.months) &&
     isRepaymentMethod(value.newMethod) &&
-    isFiniteNumber(value.prepaymentFeeRate) &&
-    isFiniteNumber(value.stampTax) &&
-    isFiniteNumber(value.guaranteeFee)
+    isNumberInRange(value.prepaymentFeeRate, VALIDATION_RULES.prepaymentFeeRate) &&
+    isNumberInRange(value.stampTax, VALIDATION_RULES.cost) &&
+    isNumberInRange(value.guaranteeFee, VALIDATION_RULES.cost)
   );
 }

@@ -11,6 +11,7 @@ import RefinanceResultDashboard from "@/components/RefinanceResultDashboard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { toUserFacingErrorMessage } from "@/lib/errorMessage";
 import { isRefinanceInput } from "@/lib/inputValidators";
+import { VALIDATION_RULES } from "@/lib/validationRules";
 
 const defaultInput: RefinanceInput = {
   currentBalance: 10_000_000,
@@ -78,7 +79,7 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("currentBalance", v)}
               suffix="원"
               step={1000000}
-              min={0}
+              min={VALIDATION_RULES.loanBalance.min}
             />
             <NumberInput
               label="연 금리"
@@ -86,8 +87,8 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("currentRate", v)}
               suffix="%"
               step={0.1}
-              min={0}
-              max={30}
+              min={VALIDATION_RULES.rate.min}
+              max={VALIDATION_RULES.rate.max}
             />
             <NumberInput
               label="잔여 기간"
@@ -95,8 +96,8 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("currentMonths", v)}
               suffix="개월"
               step={1}
-              min={1}
-              max={480}
+              min={VALIDATION_RULES.months.min}
+              max={VALIDATION_RULES.months.max}
               integerOnly
             />
             <div>
@@ -126,8 +127,8 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("newRate", v)}
               suffix="%"
               step={0.1}
-              min={0}
-              max={30}
+              min={VALIDATION_RULES.rate.min}
+              max={VALIDATION_RULES.rate.max}
             />
             <NumberInput
               label="대출 기간"
@@ -135,8 +136,8 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("newMonths", v)}
               suffix="개월"
               step={1}
-              min={1}
-              max={480}
+              min={VALIDATION_RULES.months.min}
+              max={VALIDATION_RULES.months.max}
               integerOnly
             />
             <div>
@@ -166,8 +167,8 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("prepaymentFeeRate", v)}
               suffix="%"
               step={0.1}
-              min={0}
-              max={5}
+              min={VALIDATION_RULES.prepaymentFeeRate.min}
+              max={VALIDATION_RULES.prepaymentFeeRate.max}
             />
             <NumberInput
               label="인지세"
@@ -175,7 +176,7 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("stampTax", v)}
               suffix="원"
               step={10000}
-              min={0}
+              min={VALIDATION_RULES.cost.min}
             />
             <NumberInput
               label="보증료 및 기타 비용"
@@ -183,7 +184,7 @@ export default function RefinanceSimulator() {
               onChange={(v) => update("guaranteeFee", v)}
               suffix="원"
               step={10000}
-              min={0}
+              min={VALIDATION_RULES.cost.min}
             />
           </div>
         </section>

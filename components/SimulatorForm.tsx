@@ -4,6 +4,7 @@ import { SimulatorInput, RepaymentMethod, TaxType, InterestType } from "@/lib/ty
 import { repaymentMethodLabels, taxTypeLabels, interestTypeLabels } from "@/lib/constants";
 import NumberInput from "@/components/ui/NumberInput";
 import { formatKRW } from "@/lib/formatter";
+import { VALIDATION_RULES } from "@/lib/validationRules";
 
 interface SimulatorFormProps {
   input: SimulatorInput;
@@ -44,7 +45,7 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             onChange={(v) => update("loanBalance", v)}
             suffix="원"
             step={1000000}
-            min={0}
+            min={VALIDATION_RULES.loanBalance.min}
           />
           <NumberInput
             label="연 금리"
@@ -52,8 +53,8 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             onChange={(v) => update("loanRate", v)}
             suffix="%"
             step={0.1}
-            min={0}
-            max={30}
+            min={VALIDATION_RULES.rate.min}
+            max={VALIDATION_RULES.rate.max}
           />
           <NumberInput
             label="잔여 기간"
@@ -61,8 +62,8 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             onChange={(v) => update("remainingMonths", v)}
             suffix="개월"
             step={1}
-            min={1}
-            max={480}
+            min={VALIDATION_RULES.months.min}
+            max={VALIDATION_RULES.months.max}
             integerOnly
           />
           <div>
@@ -92,7 +93,7 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             onChange={(v) => update("extraFunds", v)}
             suffix="원"
             step={1000000}
-            min={0}
+            min={VALIDATION_RULES.loanBalance.min}
             max={input.loanBalance}
           />
           <NumberInput
@@ -101,8 +102,8 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             onChange={(v) => update("prepaymentFeeRate", v)}
             suffix="%"
             step={0.1}
-            min={0}
-            max={5}
+            min={VALIDATION_RULES.prepaymentFeeRate.min}
+            max={VALIDATION_RULES.prepaymentFeeRate.max}
           />
         </div>
       </section>
@@ -129,8 +130,8 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
             onChange={(v) => update("savingsRate", v)}
             suffix="%"
             step={0.1}
-            min={0}
-            max={15}
+            min={VALIDATION_RULES.savingsRate.min}
+            max={VALIDATION_RULES.savingsRate.max}
           />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">이자 계산 방식</label>
