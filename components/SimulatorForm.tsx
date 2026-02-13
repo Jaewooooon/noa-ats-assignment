@@ -3,6 +3,7 @@
 import { SimulatorInput, RepaymentMethod, TaxType, InterestType } from "@/lib/types";
 import { repaymentMethodLabels, taxTypeLabels, interestTypeLabels } from "@/lib/constants";
 import NumberInput from "@/components/ui/NumberInput";
+import { formatKRW } from "@/lib/formatter";
 
 interface SimulatorFormProps {
   input: SimulatorInput;
@@ -11,6 +12,23 @@ interface SimulatorFormProps {
 
 export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
   const update = <K extends keyof SimulatorInput>(key: K, value: SimulatorInput[K]) => {
+    if (key === "loanBalance") {
+      const nextLoanBalance = value as number;
+      onChange({
+        ...input,
+        loanBalance: nextLoanBalance,
+        // 여유 자금은 대출 잔액 한도를 넘지 않도록 동기화
+        extraFunds: Math.min(input.extraFunds, nextLoanBalance),
+      });
+      return;
+    }
+
+    if (key === "extraFunds") {
+      const nextExtraFunds = Math.min(value as number, input.loanBalance);
+      onChange({ ...input, extraFunds: nextExtraFunds });
+      return;
+    }
+
     onChange({ ...input, [key]: value });
   };
 
@@ -68,12 +86,13 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">중도상환</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <NumberInput
-            label="여유 자금"
+            label="자금"
             value={input.extraFunds}
             onChange={(v) => update("extraFunds", v)}
             suffix="원"
             step={1000000}
             min={0}
+            max={input.loanBalance}
           />
           <NumberInput
             label="중도상환 수수료율"
@@ -91,6 +110,18 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
       <section className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">정기예금 비교</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">정기예금 자금</label>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-600">
+              {formatKRW(input.extraFunds)} (중도상환 자금과 동일)
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">정기예금 기간</label>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-600">
+              {input.remainingMonths}개월 (대출 잔여 기간과 동일)
+            </div>
+          </div>
           <NumberInput
             label="정기예금 연 금리"
             value={input.savingsRate}
@@ -132,12 +163,6 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
               <br />
               2000만원 초과 이자소득의 실제 과세는 다를 수 있습니다.
             </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">정기예금 기간</label>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-600">
-              {input.remainingMonths}개월 (대출 잔여 기간과 동일)
-            </div>
           </div>
         </div>
       </section>

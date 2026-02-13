@@ -1,6 +1,6 @@
 import Decimal from "decimal.js";
-import { RefinanceInput, RefinanceResult, RepaymentMethod } from "./types";
-import { calculateSchedule, toLoanResult, AmortizationRow, LoanResult } from "./loanCalculator";
+import { RefinanceInput, RefinanceResult } from "./types";
+import { calculateSchedule, toLoanResult } from "./loanCalculator";
 
 /** 금액(원)을 Decimal에서 반올림하여 number로 변환 */
 function toYen(d: Decimal): number {
