@@ -2,7 +2,7 @@
 
 import { RefinanceResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
-import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
+import { REFINANCE_RECOMMEND_THRESHOLD } from "@/lib/constants";
 import { getRefinanceRecommendation } from "@/lib/recommendation";
 
 interface RefinanceResultDashboardProps {
@@ -94,7 +94,7 @@ export default function RefinanceResultDashboard({
           </div>
           {isSimilar && (
             <div className="text-xs text-gray-500">
-              {formatKRW(COMPARISON_SIMILARITY_THRESHOLD)} 이하 차이로 비슷한 수준입니다.
+              대환 절감액이 {formatKRW(REFINANCE_RECOMMEND_THRESHOLD)} 이하라 판단을 유보합니다.
             </div>
           )}
         </div>

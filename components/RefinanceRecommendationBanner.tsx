@@ -2,7 +2,7 @@
 
 import { RefinanceResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
-import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
+import { REFINANCE_RECOMMEND_THRESHOLD } from "@/lib/constants";
 import { getRefinanceRecommendation } from "@/lib/recommendation";
 
 interface RefinanceRecommendationBannerProps {
@@ -27,7 +27,7 @@ export default function RefinanceRecommendationBanner({ result }: RefinanceRecom
         <span className="text-3xl">{isSimilar ? "⚖️" : isRecommended ? "✅" : "⚠️"}</span>
         <h3 className="text-xl font-bold">
           {isSimilar
-            ? "대환/유지의 수익이 비슷합니다"
+            ? "판단을 유보합니다"
             : isRecommended
             ? "대환대출을 추천합니다"
             : "대환대출을 권장하지 않습니다"}
@@ -35,7 +35,7 @@ export default function RefinanceRecommendationBanner({ result }: RefinanceRecom
       </div>
       <p className="text-white/90 text-base">
         {isSimilar
-          ? `대환대출과 기존 유지의 차이가 ${formatKRW(absNetBenefit)}로 ${formatKRW(COMPARISON_SIMILARITY_THRESHOLD)} 이하입니다.`
+          ? `대환 시 기대 절감액이 ${formatKRW(absNetBenefit)}로 ${formatKRW(REFINANCE_RECOMMEND_THRESHOLD)} 이하라 판단을 유보합니다.`
           : isRecommended
           ? `대환대출로 전환하면 기존 대출 대비 ${formatKRW(result.netBenefit)} 절감할 수 있습니다.`
           : `대환 비용을 고려하면 기존 대출을 유지하는 것이 ${formatKRW(Math.abs(result.netBenefit))} 더 유리합니다.`}

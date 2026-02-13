@@ -1,4 +1,7 @@
-import { COMPARISON_SIMILARITY_THRESHOLD } from "./constants";
+import {
+  COMPARISON_SIMILARITY_THRESHOLD,
+  REFINANCE_RECOMMEND_THRESHOLD,
+} from "./constants";
 import { ComparisonResult } from "./types";
 
 export type RefinanceRecommendation = "refinance" | "keep" | "similar";
@@ -14,7 +17,8 @@ export function getComparisonRecommendation(
 export function getRefinanceRecommendation(
   netBenefit: number
 ): RefinanceRecommendation {
-  const absNetBenefit = Math.abs(netBenefit);
-  if (absNetBenefit <= COMPARISON_SIMILARITY_THRESHOLD) return "similar";
-  return netBenefit > 0 ? "refinance" : "keep";
+  // 대환은 보수적으로 추천: 기존 유지가 1원이라도 유리하면 유지 권장.
+  if (netBenefit <= 0) return "keep";
+  if (netBenefit <= REFINANCE_RECOMMEND_THRESHOLD) return "similar";
+  return "refinance";
 }
