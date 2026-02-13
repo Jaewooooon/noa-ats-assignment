@@ -127,6 +127,11 @@ export default function SimulatorForm({ input, onChange }: SimulatorFormProps) {
                 )
               )}
             </select>
+            <p className="mt-1 text-xs text-gray-500">
+              기본 계산은 선택한 과세유형 기준이며,
+              <br />
+              2000만원 초과 이자소득의 실제 과세는 다를 수 있습니다.
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">정기예금 기간</label>
