@@ -108,4 +108,10 @@ describe("simulatePrepayment", () => {
       expect(row.interestPayment).toBe(0);
     });
   });
+
+  it("음수 입력이면 에러를 던진다", () => {
+    expect(() =>
+      simulatePrepayment(-1, 4.5, 12, "equalPrincipalAndInterest", 1_000_000, 1.4)
+    ).toThrow(RangeError);
+  });
 });

@@ -213,4 +213,13 @@ describe("simulateRefinance", () => {
     expect(result.currentLoan.schedule).toHaveLength(baseInput.currentMonths);
     expect(result.newLoan.schedule).toHaveLength(baseInput.newMonths);
   });
+
+  it("음수 입력이면 에러를 던진다", () => {
+    expect(() =>
+      simulateRefinance({
+        ...baseInput,
+        currentBalance: -1,
+      })
+    ).toThrow(RangeError);
+  });
 });

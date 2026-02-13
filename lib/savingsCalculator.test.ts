@@ -74,6 +74,10 @@ describe("calculateSavings", () => {
 
       expect(defaults.grossInterest).toBeCloseTo(explicit.grossInterest, 0);
     });
+
+    it("음수 입력이면 에러를 던진다", () => {
+      expect(() => calculateSavings(-1, 3.5, 12, "normal", "monthlyCompound")).toThrow(RangeError);
+    });
   });
 });
 
