@@ -1,5 +1,7 @@
 import { RepaymentMethod, TaxType, InterestType } from "./types";
 
+export const COMPARISON_SIMILARITY_THRESHOLD = 10_000;
+
 export const repaymentMethodLabels: Record<RepaymentMethod, string> = {
   equalPrincipalAndInterest: "원리금균등",
   equalPrincipal: "원금균등",

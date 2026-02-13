@@ -2,6 +2,7 @@
 
 import { ComparisonResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
+import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
 
 interface ResultDashboardProps {
   result: ComparisonResult;
@@ -9,6 +10,7 @@ interface ResultDashboardProps {
 
 export default function ResultDashboard({ result }: ResultDashboardProps) {
   const { prepayment, savings, difference, recommendation } = result;
+  const isSimilar = recommendation === "similar";
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -50,18 +52,26 @@ export default function ResultDashboard({ result }: ResultDashboardProps) {
 
       {/* 차액 */}
       <div className={`rounded-xl border-2 p-5 ${
-        recommendation === "prepayment"
+        isSimilar
+          ? "border-gray-500 bg-gray-50"
+          : recommendation === "prepayment"
           ? "border-blue-500 bg-blue-50"
           : "border-green-500 bg-green-50"
       }`}>
         <h4 className="text-sm font-medium text-gray-500 mb-1">차액</h4>
         <p className={`text-2xl font-bold ${
-          recommendation === "prepayment" ? "text-blue-700" : "text-green-700"
+          isSimilar
+            ? "text-gray-700"
+            : recommendation === "prepayment"
+              ? "text-blue-700"
+              : "text-green-700"
         }`}>
           {formatKRW(Math.abs(difference))}
         </p>
         <p className="mt-2 text-sm font-medium text-gray-700">
-          {recommendation === "prepayment"
+          {isSimilar
+            ? `두 선택지의 수익이 비슷함 (${formatKRW(COMPARISON_SIMILARITY_THRESHOLD)} 이하 차이)`
+            : recommendation === "prepayment"
             ? "중도상환이 더 이득"
             : "정기예금이 더 이득"}
         </p>

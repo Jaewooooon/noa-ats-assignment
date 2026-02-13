@@ -67,7 +67,7 @@ export interface ComparisonResult {
   prepayment: PrepaymentResult;
   savings: SavingsResult;
   difference: number;             // 중도상환 순이익 - 정기예금 순이익 (양수면 중도상환 유리)
-  recommendation: "prepayment" | "savings";
+  recommendation: "prepayment" | "savings" | "similar";
 }
 
 /** 대환대출 입력 값 */

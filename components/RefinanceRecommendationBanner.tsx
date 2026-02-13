@@ -2,30 +2,39 @@
 
 import { RefinanceResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
+import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
 
 interface RefinanceRecommendationBannerProps {
   result: RefinanceResult;
 }
 
 export default function RefinanceRecommendationBanner({ result }: RefinanceRecommendationBannerProps) {
-  const isRecommended = result.netBenefit > 0;
+  const absNetBenefit = Math.abs(result.netBenefit);
+  const isSimilar = absNetBenefit <= COMPARISON_SIMILARITY_THRESHOLD;
+  const isRecommended = result.netBenefit > COMPARISON_SIMILARITY_THRESHOLD;
 
   return (
     <div className={`rounded-xl p-6 ${
-      isRecommended
+      isSimilar
+        ? "bg-gray-700 text-white"
+        : isRecommended
         ? "bg-blue-600 text-white"
         : "bg-orange-500 text-white"
     }`}>
       <div className="flex items-center gap-3 mb-2">
-        <span className="text-3xl">{isRecommended ? "✅" : "⚠️"}</span>
+        <span className="text-3xl">{isSimilar ? "⚖️" : isRecommended ? "✅" : "⚠️"}</span>
         <h3 className="text-xl font-bold">
-          {isRecommended
+          {isSimilar
+            ? "대환/유지의 수익이 비슷합니다"
+            : isRecommended
             ? "대환대출을 추천합니다"
             : "대환대출을 권장하지 않습니다"}
         </h3>
       </div>
       <p className="text-white/90 text-base">
-        {isRecommended
+        {isSimilar
+          ? `대환대출과 기존 유지의 차이가 ${formatKRW(absNetBenefit)}로 ${formatKRW(COMPARISON_SIMILARITY_THRESHOLD)} 이하입니다.`
+          : isRecommended
           ? `대환대출로 전환하면 기존 대출 대비 ${formatKRW(result.netBenefit)} 절감할 수 있습니다.`
           : `대환 비용을 고려하면 기존 대출을 유지하는 것이 ${formatKRW(Math.abs(result.netBenefit))} 더 유리합니다.`}
       </p>

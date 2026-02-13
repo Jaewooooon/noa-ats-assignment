@@ -2,6 +2,7 @@
 
 import { RefinanceResult } from "@/lib/types";
 import { formatKRW } from "@/lib/formatter";
+import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
 
 interface RefinanceResultDashboardProps {
   result: RefinanceResult;
@@ -14,6 +15,9 @@ export default function RefinanceResultDashboard({
   currentMonths,
   newMonths
 }: RefinanceResultDashboardProps) {
+  const absNetBenefit = Math.abs(result.netBenefit);
+  const isSimilar = absNetBenefit <= COMPARISON_SIMILARITY_THRESHOLD;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* 카드 A: 기존 대출 */}
@@ -58,25 +62,40 @@ export default function RefinanceResultDashboard({
 
       {/* 카드 C: 순이익 */}
       <div className={`rounded-xl border-2 p-5 ${
-        result.netBenefit > 0
+        isSimilar
+          ? "border-gray-500 bg-gray-50"
+          : result.netBenefit > 0
           ? "border-blue-500 bg-blue-50"
           : "border-orange-400 bg-orange-50"
       }`}>
         <h4 className="text-sm font-medium text-gray-500 mb-1">순이익</h4>
         <p className={`text-2xl font-bold ${
-          result.netBenefit > 0 ? "text-blue-700" : "text-orange-700"
+          isSimilar
+            ? "text-gray-700"
+            : result.netBenefit > 0
+              ? "text-blue-700"
+              : "text-orange-700"
         }`}>
-          {result.netBenefit > 0 ? "+" : ""}{formatKRW(result.netBenefit)}
+          {isSimilar
+            ? formatKRW(absNetBenefit)
+            : `${result.netBenefit > 0 ? "+" : ""}${formatKRW(result.netBenefit)}`}
         </p>
         <div className="mt-3 space-y-1 text-sm text-gray-600">
           <div className="flex justify-between">
             <span>이자 절감</span>
-            <span className="font-medium text-green-600">+{formatKRW(result.interestSaved)}</span>
+            <span className={`font-medium ${result.interestSaved >= 0 ? "text-green-600" : "text-orange-600"}`}>
+              {result.interestSaved >= 0 ? "+" : ""}{formatKRW(result.interestSaved)}
+            </span>
           </div>
           <div className="flex justify-between">
             <span>대환 비용</span>
             <span className="font-medium text-orange-600">-{formatKRW(result.totalCost)}</span>
           </div>
+          {isSimilar && (
+            <div className="text-xs text-gray-500">
+              {formatKRW(COMPARISON_SIMILARITY_THRESHOLD)} 이하 차이로 비슷한 수준입니다.
+            </div>
+          )}
         </div>
       </div>
     </div>

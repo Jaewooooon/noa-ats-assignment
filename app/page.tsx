@@ -10,6 +10,7 @@ import RecommendationBanner from "@/components/RecommendationBanner";
 import AmortizationTable from "@/components/AmortizationTable";
 import RefinanceSimulator from "@/components/RefinanceSimulator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { COMPARISON_SIMILARITY_THRESHOLD } from "@/lib/constants";
 
 type TabType = "prepayment" | "refinance";
 
@@ -50,12 +51,20 @@ export default function Home() {
     );
 
     const difference = prepayment.netBenefit - savings.netInterest;
+    const absDifference = Math.abs(difference);
+
+    const recommendation: ComparisonResult["recommendation"] =
+      absDifference <= COMPARISON_SIMILARITY_THRESHOLD
+        ? "similar"
+        : difference > 0
+          ? "prepayment"
+          : "savings";
 
     return {
       prepayment,
       savings,
       difference,
-      recommendation: difference >= 0 ? "prepayment" : "savings",
+      recommendation,
     };
   }, [input]);
 
